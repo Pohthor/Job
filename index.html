@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>وظيفتي</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,Arial,sans-serif;background:#0a0f1e;color:#e2e8f0;min-height:100vh;direction:rtl}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+select option{background:#111827}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:#111827}
+::-webkit-scrollbar-thumb{background:#1f2d45;border-radius:3px}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useRef, useEffect } = React;
+
+const PRESETS = {
+  'هندسة برمجيات':['Python','JavaScript','Java','C++','Git','Docker','AWS','SQL','React','Node.js','TypeScript'],
+  'تطوير الويب':['HTML','CSS','JavaScript','React','Vue.js','Next.js','Node.js','PHP','WordPress','Tailwind'],
+  'تطوير تطبيقات الجوال':['Swift','Kotlin','Flutter','React Native','Firebase','Android','iOS','Dart'],
+  'علوم البيانات والذكاء الاصطناعي':['Python','Machine Learning','TensorFlow','PyTorch','SQL','Pandas','Power BI','Tableau','NLP'],
+  'الأمن السيبراني':['Penetration Testing','SIEM','Firewalls','SOC','ISO 27001','CISSP','Network Security','Kali Linux'],
+  'البنية التحتية والشبكات':['Cisco','Linux','Windows Server','VMware','AWS','Azure','CCNA','Active Directory'],
+  'إدارة المشاريع':['PMP','Agile','Scrum','MS Project','Risk Management','Budgeting','PRINCE2'],
+  'الموارد البشرية':['التوظيف','إدارة الأداء','SAP HR','قانون العمل','التدريب والتطوير','SHRM'],
+  'المحاسبة والمالية':['Excel','SAP','Oracle','IFRS','GAAP','التدقيق','ضريبة القيمة المضافة','تحليل مالي'],
+  'التسويق الرقمي':['SEO','SEM','Google Ads','Meta Ads','Email Marketing','Analytics','Social Media','Canva'],
+  'المبيعات وتطوير الأعمال':['CRM','Salesforce','التفاوض','إدارة العملاء','B2B','B2C'],
+  'الهندسة الميكانيكية':['AutoCAD','SolidWorks','ANSYS','ميكانيكا الموائع','تصميم ميكانيكي'],
+  'الهندسة الكهربائية':['AutoCAD Electrical','MATLAB','PLC','Scada','شبكات كهربائية','أتمتة'],
+  'الهندسة المدنية':['AutoCAD','Revit','SAP2000','تصميم إنشائي','MS Project'],
+  'تصميم الجرافيك':['Photoshop','Illustrator','InDesign','Canva','Figma','After Effects'],
+  'تصميم تجربة المستخدم (UX/UI)':['Figma','Adobe XD','Prototyping','User Research','Wireframing','Design Systems'],
+  'الطب البشري':['التشخيص السريري','ACLS','BLS','السجلات الطبية','HIS'],
+  'التمريض':['رعاية المرضى','BLS','ACLS','الأدوية','العناية المركزة'],
+  'القانون والشؤون القانونية':['قانون مدني','قانون تجاري','عقود','التحكيم','قانون العمل السعودي'],
+  'هندسة النفط والغاز':['Petrel','Eclipse','حفر آبار','هندسة خزانات','HSE','HAZOP'],
+};
+const FIELDS=['هندسة برمجيات','تطوير الويب','تطوير تطبيقات الجوال','علوم البيانات والذكاء الاصطناعي','الأمن السيبراني','البنية التحتية والشبكات','إدارة المنتج التقني','إدارة المشاريع','الموارد البشرية','المحاسبة والمالية','التدقيق والمراجعة','سلسلة الإمداد واللوجستيات','إدارة العمليات','التسويق الرقمي','المبيعات وتطوير الأعمال','إدارة العلامة التجارية','علاقات العملاء','إنشاء المحتوى','الطب البشري','التمريض','الصيدلة','إدارة المستشفيات','الهندسة الميكانيكية','الهندسة الكهربائية','الهندسة المدنية','هندسة النفط والغاز','هندسة الصناعة والإنتاج','تصميم الجرافيك','تصميم تجربة المستخدم (UX/UI)','الإنتاج الإعلامي والتصوير','الترجمة والتحرير','الهندسة المعمارية','إدارة المشاريع الإنشائية','التسويق العقاري','القانون والشؤون القانونية','الإدارة الحكومية','الامتثال والحوكمة'];
+const STEPS_S=['تحليل بياناتك ومهاراتك','البحث في سوق العمل','تقييم التوافق مع كل وظيفة','إعداد التقرير النهائي'];
+const STEPS_CV=['قراءة وفهم المحتوى','تقييم كل قسم','مقارنة مع معايير السوق','كتابة توصيات التحسين'];
+const C={bg:'#0a0f1e',card:'#161e30',surface:'#111827',border:'#1f2d45',accent:'#3b82f6',accent2:'#06b6d4',gold:'#f59e0b',text:'#e2e8f0',muted:'#64748b',green:'#10b981',red:'#ef4444',purple:'#8b5cf6'};
+
+const callAPI=async(key,body)=>{
+  const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:4000,...body})});
+  if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error?.message||'HTTP '+res.status);}
+  const d=await res.json();
+  return(d.content||[]).filter(c=>c.type==='text').map(c=>c.text).join('');
+};
+const parseJSON=t=>{const s=t.indexOf('{'),e=t.lastIndexOf('}');if(s===-1||e===-1)throw new Error('لم يُعثر على JSON');return JSON.parse(t.slice(s,e+1));};
+
+function Toast({msg,show}){return <div style={{position:'fixed',bottom:24,left:'50%',transform:`translateX(-50%) translateY(${show?0:80}px)`,background:C.surface,border:'1px solid rgba(59,130,246,.4)',borderRadius:10,padding:'10px 18px',fontSize:14,fontWeight:500,zIndex:300,transition:'transform .3s',color:'#93c5fd',pointerEvents:'none',whiteSpace:'nowrap'}}>{msg}</div>;}
+
+function Steps({steps,idx}){return(
+  <div style={{textAlign:'center',padding:'50px 20px'}}>
+    <div style={{width:44,height:44,border:`3px solid ${C.border}`,borderTopColor:C.accent,borderRadius:'50%',animation:'spin .8s linear infinite',margin:'0 auto 18px'}}/>
+    <p style={{color:C.muted,marginBottom:18,fontSize:14}}>جاري التحليل...</p>
+    <div style={{display:'flex',flexDirection:'column',gap:10,maxWidth:280,margin:'0 auto',textAlign:'right'}}>
+      {steps.map((s,i)=>{const st=i<idx?'done':i===idx?'active':'idle';const col=st==='done'?C.green:st==='active'?C.accent2:C.muted;return(<div key={i} style={{display:'flex',alignItems:'center',gap:10,fontSize:14,color:col}}><div style={{width:8,height:8,borderRadius:'50%',background:st==='done'?C.green:st==='active'?C.accent2:C.border,flexShrink:0}}/><span>{st==='done'?'✓ ':''}{s}</span></div>);})}
+    </div>
+  </div>
+);}
+
+function SkillsInput({skills,onChange}){
+  const [inp,setInp]=useState('');const ref=useRef();
+  const add=n=>{const t=n.trim();if(t&&!skills.includes(t))onChange([...skills,t]);};
+  const remove=i=>onChange(skills.filter((_,j)=>j!==i));
+  return(
+    <div onClick={()=>ref.current?.focus()} style={{display:'flex',flexWrap:'wrap',gap:7,background:C.surface,border:`1px solid ${C.border}`,borderRadius:9,padding:'8px 10px',minHeight:48,cursor:'text'}}>
+      {skills.map((sk,i)=>(
+        <span key={i} style={{display:'inline-flex',alignItems:'center',gap:5,background:'rgba(59,130,246,.15)',border:'1px solid rgba(59,130,246,.3)',color:'#93c5fd',borderRadius:6,padding:'3px 9px',fontSize:13}}>
+          {sk}<button onClick={()=>remove(i)} style={{background:'none',border:'none',color:'#93c5fd',cursor:'pointer',fontSize:15,padding:0,opacity:.6,lineHeight:1}}>×</button>
+        </span>
+      ))}
+      <input ref={ref} value={inp} onChange={e=>setInp(e.target.value)}
+        onKeyDown={e=>{if((e.key==='Enter'||e.key===',')&&inp.trim()){e.preventDefault();add(inp);setInp('');}if(e.key==='Backspace'&&!inp&&skills.length)remove(skills.length-1);}}
+        placeholder="اكتب مهارة..." style={{background:'none',border:'none',outline:'none',color:C.text,fontSize:13,minWidth:100,flex:1,padding:'2px 4px'}}/>
+    </div>
+  );
+}
+
+function SearchTab({apiKey,showToast}){
+  const [field,setField]=useState('');const [exp,setExp]=useState('3-5');const [skills,setSkills]=useState([]);
+  const [loc,setLoc]=useState('المملكة العربية السعودية');const [salary,setSalary]=useState('');const [extra,setExtra]=useState('');
+  const [loading,setLoading]=useState(false);const [stepIdx,setStepIdx]=useState(0);
+  const [results,setResults]=useState(null);const [error,setError]=useState('');
+  const [saved,setSaved]=useState([]);const [modal,setModal]=useState(null);
+  const [letter,setLetter]=useState('');const [letLoading,setLetLoading]=useState(false);const [copied,setCopied]=useState(false);
+  const stepRef=useRef();
+  const presets=PRESETS[field]||[];
+  const toggleSkill=s=>skills.includes(s)?setSkills(skills.filter(x=>x!==s)):setSkills([...skills,s]);
+  const isSaved=job=>saved.some(j=>j.title===job.title&&j.company===job.company);
+  const toggleSave=job=>{if(isSaved(job)){setSaved(saved.filter(j=>!(j.title===job.title&&j.company===job.company)));showToast('تم إلغاء الحفظ');}else{setSaved([...saved,{...job,profile:{field,exp,skills,loc,salary}}]);showToast('تم الحفظ ⭐');}};
+
+  const search=async()=>{
+    if(!apiKey){showToast('أدخل API Key أولاً');return;}
+    if(!field){showToast('اختر مجال التخصص');return;}
+    setLoading(true);setResults(null);setError('');setStepIdx(0);
+    let si=0;stepRef.current=setInterval(()=>{si<3?setStepIdx(++si):clearInterval(stepRef.current);},1800);
+    try{
+      const txt=await callAPI(apiKey,{system:'أنت مستشار وظيفي. أجب فقط بـ JSON صالح.',messages:[{role:'user',content:`المجال:${field}\nالخبرة:${exp}\nالمهارات:${skills.join('،')||'لم يحدد'}\nالموقع:${loc}\nالراتب:${salary||'غير محدد'}\nإضافي:${extra||'لا يوجد'}\nقدّم 5 وظائف واقعية في السوق السعودي/الخليجي.\nأرجع JSON:\n{"summary":"ملخص","jobs":[{"title":"","company":"","location":"","type":"","experience_required":"","salary_range":"","description":"","required_skills":[],"matched_skills":[],"match_percentage":80,"why_suitable":"","linkedin_search":"","bayt_search":""}]}`}]});
+      const p=parseJSON(txt);if(!p.jobs?.length)throw new Error('لم تُرجَع وظائف');
+      clearInterval(stepRef.current);setTimeout(()=>{setLoading(false);setResults(p);},400);
+    }catch(err){clearInterval(stepRef.current);setLoading(false);setError(err.message);}
+  };
+
+  const openLetter=async(job,prof)=>{
+    setModal({job,prof});setLetter('');setLetLoading(true);
+    try{const txt=await callAPI(apiKey,{messages:[{role:'user',content:`اكتب خطاب تقديم وظيفي احترافي بالعربية:\nالمتقدم: ${prof.field}، خبرة ${prof.exp}، مهارات: ${(prof.skills||[]).join('، ')}\nالوظيفة: ${job.title} في ${job.company} - ${job.location}\nالمهارات: ${(job.required_skills||[]).join('، ')}\nاكتب خطاباً 200-250 كلمة بدون عناوين.`}]});setLetter(txt);}
+    catch(e){setLetter('خطأ: '+e.message);}setLetLoading(false);
+  };
+
+  const inp=(s={})=>({width:'100%',background:C.surface,border:`1px solid ${C.border}`,borderRadius:9,padding:'11px 14px',color:C.text,fontSize:14,outline:'none',fontFamily:'inherit',...s});
+  const lbl={fontSize:13,fontWeight:500,color:C.muted,display:'block',marginBottom:6};
+  const card={background:C.card,border:`1px solid ${C.border}`,borderRadius:18,padding:'28px 24px',marginBottom:20};
+
+  return(
+    <div>
+      {modal&&(
+        <div onClick={e=>e.target===e.currentTarget&&setModal(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.8)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
+          <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:18,width:'100%',maxWidth:660,maxHeight:'90vh',overflowY:'auto'}}>
+            <div style={{padding:'20px 24px 0',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+              <div style={{fontSize:17,fontWeight:700}}>✉️ خطاب التقديم</div>
+              <button onClick={()=>setModal(null)} style={{background:'none',border:'none',color:C.muted,cursor:'pointer',fontSize:22}}>×</button>
+            </div>
+            <div style={{padding:'16px 24px 24px'}}>
+              <div style={{background:C.surface,borderRadius:9,padding:'12px 14px',marginBottom:16,fontSize:14,color:C.muted}}><strong>{modal.job.title}</strong> — {modal.job.company} · {modal.job.location}</div>
+              {letLoading?(<div style={{textAlign:'center',padding:40}}><div style={{width:40,height:40,border:`3px solid ${C.border}`,borderTopColor:C.accent,borderRadius:'50%',animation:'spin .8s linear infinite',margin:'0 auto 14px'}}/><div style={{color:C.muted,fontSize:14}}>يكتب خطابك...</div></div>):(
+                <>
+                  <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:10,padding:16,fontSize:14,lineHeight:2,color:C.text,whiteSpace:'pre-wrap',minHeight:200}}>{letter}</div>
+                  <button onClick={()=>navigator.clipboard.writeText(letter).then(()=>{setCopied(true);showToast('تم النسخ!');setTimeout(()=>setCopied(false),3000);})} style={{marginTop:12,width:'100%',padding:11,border:'none',borderRadius:9,background:copied?C.green:`linear-gradient(135deg,${C.purple},#6366f1)`,color:'#fff',fontSize:14,fontWeight:600,cursor:'pointer'}}>{copied?'✅ تم النسخ!':'📋 نسخ الخطاب'}</button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div style={card}>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:18}}>
+          <div><label style={lbl}>مجال التخصص</label><select value={field} onChange={e=>setField(e.target.value)} style={inp()}><option value="">-- اختر --</option>{FIELDS.map(f=><option key={f}>{f}</option>)}</select></div>
+          <div><label style={lbl}>سنوات الخبرة</label><select value={exp} onChange={e=>setExp(e.target.value)} style={inp()}><option value="0">بدون خبرة</option><option value="1-2">1-2 سنة</option><option value="3-5">3-5 سنوات</option><option value="6-10">6-10 سنوات</option><option value="10+">أكثر من 10</option></select></div>
+          <div style={{gridColumn:'1/-1'}}>
+            <label style={lbl}>المهارات</label>
+            <SkillsInput skills={skills} onChange={setSkills}/>
+            {presets.length>0&&<div style={{display:'flex',flexWrap:'wrap',gap:6,marginTop:9}}>{presets.map(p=><button key={p} onClick={()=>toggleSkill(p)} style={{background:skills.includes(p)?'rgba(59,130,246,.15)':C.surface,border:`1px solid ${skills.includes(p)?'rgba(59,130,246,.4)':C.border}`,color:skills.includes(p)?'#93c5fd':C.muted,borderRadius:20,padding:'4px 12px',fontSize:12,cursor:'pointer'}}>{p}</button>)}</div>}
+          </div>
+          <div><label style={lbl}>الموقع</label><select value={loc} onChange={e=>setLoc(e.target.value)} style={inp()}>{['المملكة العربية السعودية','الرياض','جدة','الدمام والمنطقة الشرقية','مكة المكرمة','الإمارات','الكويت','قطر','البحرين','عُمان','عن بُعد (Remote)'].map(l=><option key={l}>{l}</option>)}</select></div>
+          <div><label style={lbl}>الراتب</label><select value={salary} onChange={e=>setSalary(e.target.value)} style={inp()}><option value="">غير محدد</option>{['أقل من 5,000 ريال','5,000-10,000 ريال','10,000-15,000 ريال','15,000-20,000 ريال','20,000-30,000 ريال','30,000-50,000 ريال','أكثر من 50,000 ريال'].map(s=><option key={s}>{s}</option>)}</select></div>
+          <div style={{gridColumn:'1/-1'}}><label style={lbl}>معلومات إضافية</label><textarea value={extra} onChange={e=>setExtra(e.target.value)} placeholder="شهاداتك، تفضيلاتك..." style={inp({resize:'vertical',minHeight:80})}/></div>
+        </div>
+        <button onClick={search} disabled={loading||!apiKey} style={{width:'100%',marginTop:20,padding:14,border:'none',borderRadius:11,background:loading||!apiKey?C.border:`linear-gradient(135deg,${C.accent},${C.accent2})`,color:loading||!apiKey?C.muted:'#fff',fontSize:15,fontWeight:600,cursor:loading||!apiKey?'not-allowed':'pointer'}}>{loading?'⏳ جاري البحث...':'🔍 ابحث عن وظائف مناسبة لي'}</button>
+      </div>
+
+      {error&&<div style={{background:'rgba(239,68,68,.08)',border:'1px solid rgba(239,68,68,.3)',borderRadius:10,padding:'14px 18px',color:'#fca5a5',fontSize:14,marginBottom:16}}>⚠️ {error}</div>}
+      {loading&&<Steps steps={STEPS_S} idx={stepIdx}/>}
+
+      {results&&(
+        <>
+          <div style={{background:'linear-gradient(135deg,rgba(59,130,246,.08),rgba(6,182,212,.05))',border:'1px solid rgba(59,130,246,.2)',borderRadius:14,padding:'16px 20px',marginBottom:20,fontSize:14,color:'#94a3b8',lineHeight:1.7}}>
+            <strong style={{color:C.accent2}}>📊 تحليل السوق: </strong>{results.summary}
+          </div>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:18,flexWrap:'wrap',gap:10}}>
+            <div style={{fontSize:19,fontWeight:700}}>الوظائف المقترحة</div>
+            <div style={{display:'flex',gap:10,alignItems:'center'}}>
+              <div style={{background:'rgba(16,185,129,.1)',border:'1px solid rgba(16,185,129,.3)',color:C.green,borderRadius:8,padding:'3px 12px',fontSize:13}}>{results.jobs.length} وظيفة</div>
+              <button onClick={()=>setResults(null)} style={{background:'none',border:`1px solid ${C.border}`,color:C.muted,borderRadius:8,padding:'7px 14px',fontSize:13,cursor:'pointer'}}>🔄 بحث جديد</button>
+            </div>
+          </div>
+          {results.jobs.map((job,idx)=>{
+            const pct=job.match_percentage||0;
+            const mc=pct>=80?{bg:'rgba(16,185,129,.12)',color:C.green,bc:'rgba(16,185,129,.3)'}:pct>=60?{bg:'rgba(245,158,11,.12)',color:C.gold,bc:'rgba(245,158,11,.3)'}:{bg:'rgba(100,116,139,.12)',color:C.muted,bc:'rgba(100,116,139,.3)'};
+            const liUrl=`https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(job.linkedin_search||job.title)}&location=${encodeURIComponent(job.location||'')}`;
+            const baytUrl=`https://www.bayt.com/ar/saudi-arabia/jobs/${encodeURIComponent((job.bayt_search||job.title).replace(/\s+/g,'-'))}-jobs/`;
+            const sv=isSaved(job);const ul=skills.map(s=>s.toLowerCase());
+            return(
+              <div key={idx} style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:14,padding:20,marginBottom:14,position:'relative',overflow:'hidden',animation:'fadeIn .3s ease both',animationDelay:idx*.08+'s'}}>
+                <div style={{position:'absolute',top:0,right:0,width:3,height:'100%',background:`linear-gradient(180deg,${C.accent},${C.accent2})`}}/>
+                <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:12,marginBottom:10,flexWrap:'wrap'}}>
+                  <div><div style={{fontSize:17,fontWeight:700,marginBottom:3}}>{job.title}</div><div style={{fontSize:13,color:C.accent2,fontWeight:500}}>{job.company}</div></div>
+                  <div style={{background:mc.bg,border:`1px solid ${mc.bc}`,color:mc.color,borderRadius:8,padding:'5px 12px',fontSize:13,fontWeight:700}}>{pct>=80?'✓':pct>=60?'◎':'○'} توافق {pct}%</div>
+                </div>
+                <div style={{display:'flex',gap:14,flexWrap:'wrap',marginBottom:12}}>{[`📍 ${job.location}`,`⏱ ${job.type}`,`🎯 ${job.experience_required}`].map(m=><span key={m} style={{fontSize:13,color:C.muted}}>{m}</span>)}</div>
+                <div style={{fontSize:13,color:'#94a3b8',lineHeight:1.7,marginBottom:12}}>{job.description}</div>
+                <div style={{display:'flex',flexWrap:'wrap',gap:6,marginBottom:12}}>{(job.required_skills||[]).map((sk,i)=>{const m=(job.matched_skills||[]).some(x=>x.toLowerCase().includes(sk.toLowerCase()))||ul.some(u=>u.includes(sk.toLowerCase())||sk.toLowerCase().includes(u));return<span key={i} style={{background:m?'rgba(16,185,129,.1)':'rgba(59,130,246,.08)',border:`1px solid ${m?'rgba(16,185,129,.3)':'rgba(59,130,246,.2)'}`,color:m?'#6ee7b7':'#93c5fd',borderRadius:6,padding:'2px 9px',fontSize:12}}>{sk}</span>;})}</div>
+                {job.why_suitable&&<div style={{fontSize:13,color:'#67e8f9',marginBottom:12,padding:'9px 12px',background:'rgba(6,182,212,.05)',borderRadius:8,borderRight:'2px solid rgba(6,182,212,.4)'}}>💡 {job.why_suitable}</div>}
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',paddingTop:12,borderTop:`1px solid ${C.border}`,flexWrap:'wrap',gap:8}}>
+                  <div style={{fontSize:14,fontWeight:600,color:C.gold}}>{job.salary_range?'💰 '+job.salary_range:''}</div>
+                  <div style={{display:'flex',gap:7,flexWrap:'wrap'}}>
+                    {[{l:sv?'⭐ محفوظة':'☆ احفظ',bg:`rgba(245,158,11,${sv?'.2':'.1'})`,bc:`rgba(245,158,11,${sv?'1':'.3'})`,c:C.gold,fn:()=>toggleSave(job)},{l:'✉️ خطاب',bg:'rgba(139,92,246,.1)',bc:'rgba(139,92,246,.3)',c:'#c4b5fd',fn:()=>openLetter(job,{field,exp,skills})},{l:'لينكد إن ↗',bg:'rgba(59,130,246,.15)',bc:'rgba(59,130,246,.4)',c:'#93c5fd',fn:()=>window.open(liUrl,'_blank')},{l:'بيت.كوم ↗',bg:'rgba(59,130,246,.15)',bc:'rgba(59,130,246,.4)',c:'#93c5fd',fn:()=>window.open(baytUrl,'_blank')}].map(b=><button key={b.l} onClick={b.fn} style={{background:b.bg,border:`1px solid ${b.bc}`,color:b.c,borderRadius:8,padding:'7px 13px',fontSize:13,fontWeight:600,cursor:'pointer'}}>{b.l}</button>)}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </>
+      )}
+
+      {saved.length>0&&(
+        <div style={{marginTop:32}}>
+          <div style={{fontSize:17,fontWeight:700,marginBottom:14}}>⭐ الوظائف المحفوظة</div>
+          {saved.map((job,idx)=>{
+            const liUrl=`https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(job.linkedin_search||job.title)}&location=${encodeURIComponent(job.location||'')}`;
+            const baytUrl=`https://www.bayt.com/ar/saudi-arabia/jobs/${encodeURIComponent((job.bayt_search||job.title).replace(/\s+/g,'-'))}-jobs/`;
+            return(
+              <div key={idx} style={{background:C.card,border:'1px solid rgba(245,158,11,.2)',borderRadius:14,padding:'16px 20px',marginBottom:12,display:'flex',alignItems:'center',justifyContent:'space-between',gap:14,flexWrap:'wrap'}}>
+                <div><div style={{fontSize:15,fontWeight:700,marginBottom:3}}>{job.title}</div><div style={{fontSize:13,color:C.muted}}>{job.company} · {job.location} · {job.salary_range||''}</div></div>
+                <div style={{display:'flex',gap:7,flexWrap:'wrap'}}>
+                  <button onClick={()=>openLetter(job,job.profile||{})} style={{background:'rgba(139,92,246,.1)',border:'1px solid rgba(139,92,246,.3)',color:'#c4b5fd',borderRadius:8,padding:'7px 13px',fontSize:13,fontWeight:600,cursor:'pointer'}}>✉️ خطاب</button>
+                  <button onClick={()=>window.open(liUrl,'_blank')} style={{background:'rgba(59,130,246,.15)',border:'1px solid rgba(59,130,246,.4)',color:'#93c5fd',borderRadius:8,padding:'7px 13px',fontSize:13,fontWeight:600,cursor:'pointer'}}>لينكد إن ↗</button>
+                  <button onClick={()=>window.open(baytUrl,'_blank')} style={{background:'rgba(59,130,246,.15)',border:'1px solid rgba(59,130,246,.4)',color:'#93c5fd',borderRadius:8,padding:'7px 13px',fontSize:13,fontWeight:600,cursor:'pointer'}}>بيت.كوم ↗</button>
+                  <button onClick={()=>setSaved(saved.filter((_,i)=>i!==idx))} style={{background:'rgba(239,68,68,.08)',border:'1px solid rgba(239,68,68,.2)',color:'#fca5a5',borderRadius:8,padding:'7px 13px',fontSize:13,fontWeight:600,cursor:'pointer'}}>🗑</button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CVTab({apiKey,showToast}){
+  const [mode,setMode]=useState('paste');const [cvText,setCvText]=useState('');const [cvFile,setCvFile]=useState('');
+  const [fileName,setFileName]=useState('');const [target,setTarget]=useState('');
+  const [loading,setLoading]=useState(false);const [stepIdx,setStepIdx]=useState(0);
+  const [results,setResults]=useState(null);const [error,setError]=useState('');
+  const [drag,setDrag]=useState(false);const [copiedIdx,setCopiedIdx]=useState(null);
+  const fileRef=useRef();const stepRef=useRef();
+
+  const handleFile=file=>{if(!file)return;if(file.size>5*1024*1024){showToast('الملف أكبر من 5MB');return;}setFileName(file.name);const r=new FileReader();r.onload=e=>setCvFile(e.target.result);r.readAsText(file);};
+
+  const analyze=async()=>{
+    if(!apiKey){showToast('أدخل API Key أولاً');return;}
+    const content=mode==='paste'?cvText.trim():cvFile.trim();
+    if(!content){showToast(mode==='paste'?'الصق نص السيرة':'ارفع ملف أولاً');return;}
+    setLoading(true);setResults(null);setError('');setStepIdx(0);
+    let si=0;stepRef.current=setInterval(()=>{si<3?setStepIdx(++si):clearInterval(stepRef.current);},1800);
+    try{
+      const txt=await callAPI(apiKey,{system:'أنت خبير CV. أجب فقط بـ JSON صالح.',messages:[{role:'user',content:`حلّل السيرة الذاتية التالية وقدم تقرير تحسين شامل.\n${target?`الوظيفة المستهدفة: ${target}`:''}\nالسيرة:\n"""\n${content.slice(0,6000)}\n"""\nأجب بـ JSON:\n{"overall_score":72,"overall_summary":"ملخص","sections":[{"name":"القسم","icon":"👤","score":65,"issues":[{"type":"fix","text":"مشكلة"},{"type":"warn","text":"تحذير"},{"type":"info","text":"نصيحة"}],"improved_version":"النص المحسّن"}],"keywords":{"present":["كلمة"],"missing":["كلمة"]},"quick_wins":["إجراء1","إجراء2","إجراء3"],"ats_score":60,"ats_tips":["نصيحة1","نصيحة2"]}\nالأقسام: الملخص الشخصي، الخبرات، المهارات، التعليم، الشكل العام.`}]});
+      const p=parseJSON(txt);clearInterval(stepRef.current);setTimeout(()=>{setLoading(false);setResults(p);},400);
+    }catch(err){clearInterval(stepRef.current);setLoading(false);setError(err.message);}
+  };
+
+  const inp=(s={})=>({width:'100%',background:C.surface,border:`1px solid ${C.border}`,borderRadius:9,padding:'11px 14px',color:C.text,fontSize:14,outline:'none',fontFamily:'inherit',...s});
+  const lbl={fontSize:13,fontWeight:500,color:C.muted,display:'block',marginBottom:6};
+  const card={background:C.card,border:`1px solid ${C.border}`,borderRadius:18,padding:'28px 24px',marginBottom:20};
+
+  const Ring=({score,label,size=100})=>{const cl=score>=75?{bc:C.green,bg:'rgba(16,185,129,.08)'}:score>=50?{bc:C.gold,bg:'rgba(245,158,11,.08)'}:{bc:C.red,bg:'rgba(239,68,68,.08)'};return<div style={{width:size,height:size,borderRadius:'50%',border:`4px solid ${cl.bc}`,background:cl.bg,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',flexShrink:0}}><div style={{fontSize:size>90?28:22,fontWeight:800,lineHeight:1}}>{score}</div><div style={{fontSize:11,color:C.muted,marginTop:2}}>{label}</div></div>;};
+
+  return(
+    <div>
+      <div style={card}>
+        <div style={{fontSize:17,fontWeight:700,marginBottom:6}}>📄 تحسين السيرة الذاتية</div>
+        <div style={{fontSize:13,color:C.muted,marginBottom:20}}>ارفع ملف أو الصق النص للحصول على تقرير تحسين شامل</div>
+        <div style={{display:'flex',gap:8,marginBottom:20}}>
+          {[{id:'paste',l:'📋 لصق النص'},{id:'file',l:'📎 رفع ملف'}].map(m=><button key={m.id} onClick={()=>setMode(m.id)} style={{background:mode===m.id?'rgba(59,130,246,.15)':C.surface,border:`1px solid ${mode===m.id?'rgba(59,130,246,.4)':C.border}`,color:mode===m.id?'#93c5fd':C.muted,borderRadius:9,padding:'9px 18px',fontSize:14,fontWeight:500,cursor:'pointer'}}>{m.l}</button>)}
+        </div>
+        {mode==='paste'?(<div><label style={lbl}>الصق نص السيرة الذاتية</label><textarea value={cvText} onChange={e=>setCvText(e.target.value)} placeholder="الصق محتوى السيرة هنا..." style={inp({resize:'vertical',minHeight:200})}/></div>):(
+          <div>
+            <label style={lbl}>ارفع ملف CV</label>
+            <div onClick={()=>fileRef.current?.click()} onDragOver={e=>{e.preventDefault();setDrag(true);}} onDragLeave={()=>setDrag(false)} onDrop={e=>{e.preventDefault();setDrag(false);handleFile(e.dataTransfer.files[0]);}} style={{border:`2px dashed ${drag?C.accent:C.border}`,borderRadius:12,padding:'36px 20px',textAlign:'center',cursor:'pointer',background:drag?'rgba(59,130,246,.04)':'transparent',transition:'all .2s'}}>
+              <div style={{fontSize:36,marginBottom:10}}>📂</div>
+              <div style={{fontSize:15,fontWeight:600,marginBottom:6}}>اسحب الملف هنا أو اضغط للاختيار</div>
+              <div style={{fontSize:13,color:C.muted}}>PDF أو DOCX أو TXT — حجم أقصى 5MB</div>
+              <input ref={fileRef} type="file" accept=".pdf,.doc,.docx,.txt" style={{display:'none'}} onChange={e=>handleFile(e.target.files[0])}/>
+            </div>
+            {fileName&&<div style={{marginTop:10,padding:'12px 14px',background:'rgba(16,185,129,.08)',border:'1px solid rgba(16,185,129,.2)',borderRadius:9,fontSize:14,color:C.green}}>✓ {fileName} — تم التحميل</div>}
+          </div>
+        )}
+        <div style={{marginTop:18}}><label style={lbl}>الوظيفة المستهدفة (اختياري)</label><input value={target} onChange={e=>setTarget(e.target.value)} placeholder="مثال: مطور برمجيات..." style={inp()}/></div>
+        <button onClick={analyze} disabled={loading||!apiKey} style={{width:'100%',marginTop:18,padding:14,border:'none',borderRadius:11,background:loading||!apiKey?C.border:`linear-gradient(135deg,${C.purple},#6366f1)`,color:loading||!apiKey?C.muted:'#fff',fontSize:15,fontWeight:600,cursor:loading||!apiKey?'not-allowed':'pointer'}}>{loading?'⏳ جاري التحليل...':'🔍 حلّل وحسّن السيرة الذاتية'}</button>
+      </div>
+
+      {error&&<div style={{background:'rgba(239,68,68,.08)',border:'1px solid rgba(239,68,68,.3)',borderRadius:10,padding:'14px 18px',color:'#fca5a5',fontSize:14,marginBottom:16}}>⚠️ {error}</div>}
+      {loading&&<Steps steps={STEPS_CV} idx={stepIdx}/>}
+
+      {results&&(
+        <div>
+          <div style={card}>
+            <div style={{display:'flex',alignItems:'center',gap:20,flexWrap:'wrap',marginBottom:20}}>
+              <Ring score={results.overall_score||0} label="تقييم عام"/>
+              <div style={{flex:1,minWidth:200}}><div style={{fontSize:18,fontWeight:700,marginBottom:8}}>نتائج التحليل</div><div style={{fontSize:14,color:'#94a3b8',lineHeight:1.7}}>{results.overall_summary}</div></div>
+              <Ring score={results.ats_score||0} label="ATS Score" size={85}/>
+            </div>
+            {results.quick_wins?.length>0&&<div style={{background:'rgba(16,185,129,.06)',border:'1px solid rgba(16,185,129,.2)',borderRadius:12,padding:'16px 18px',marginBottom:14}}><div style={{fontSize:14,fontWeight:700,color:C.green,marginBottom:10}}>⚡ إجراءات سريعة</div>{results.quick_wins.map((w,i)=><div key={i} style={{display:'flex',gap:9,fontSize:13,color:'#6ee7b7',padding:'6px 0',borderBottom:i<results.quick_wins.length-1?'1px solid rgba(16,185,129,.1)':'none'}}><span>✓</span><span>{w}</span></div>)}</div>}
+            {results.ats_tips?.length>0&&<div style={{background:'rgba(59,130,246,.06)',border:'1px solid rgba(59,130,246,.15)',borderRadius:12,padding:'16px 18px'}}><div style={{fontSize:14,fontWeight:700,color:'#93c5fd',marginBottom:10}}>🤖 نصائح الـ ATS</div>{results.ats_tips.map((t,i)=><div key={i} style={{display:'flex',gap:9,fontSize:13,color:'#93c5fd',padding:'6px 0',borderBottom:i<results.ats_tips.length-1?'1px solid rgba(59,130,246,.1)':'none'}}><span>ℹ</span><span>{t}</span></div>)}</div>}
+          </div>
+          {results.sections?.length>0&&(
+            <>
+              <div style={{fontSize:17,fontWeight:700,marginBottom:14}}>تحليل الأقسام</div>
+              {results.sections.map((sec,si)=>{
+                const sc=sec.score||0;
+                const ss=sc>=75?{bg:'rgba(16,185,129,.12)',color:C.green,bc:'rgba(16,185,129,.3)'}:sc>=50?{bg:'rgba(245,158,11,.12)',color:C.gold,bc:'rgba(245,158,11,.3)'}:{bg:'rgba(239,68,68,.12)',color:C.red,bc:'rgba(239,68,68,.3)'};
+                const is={fix:{bg:'rgba(239,68,68,.06)',color:'#fca5a5',bc:'rgba(239,68,68,.15)',icon:'🔧'},warn:{bg:'rgba(245,158,11,.06)',color:'#fcd34d',bc:'rgba(245,158,11,.15)',icon:'⚠️'},info:{bg:'rgba(59,130,246,.06)',color:'#93c5fd',bc:'rgba(59,130,246,.15)',icon:'💡'}};
+                return(
+                  <div key={si} style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:14,padding:'18px 20px',marginBottom:14}}>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12,gap:10}}>
+                      <div style={{fontSize:15,fontWeight:700}}>{sec.icon||'📌'} {sec.name}</div>
+                      <div style={{background:ss.bg,border:`1px solid ${ss.bc}`,color:ss.color,borderRadius:7,padding:'4px 11px',fontSize:13,fontWeight:700}}>{sc}/100</div>
+                    </div>
+                    {(sec.issues||[]).map((iss,ii)=>{const s=is[iss.type]||is.info;return<div key={ii} style={{display:'flex',alignItems:'flex-start',gap:9,fontSize:13,lineHeight:1.6,padding:'8px 10px',borderRadius:8,marginBottom:6,background:s.bg,border:`1px solid ${s.bc}`,color:s.color}}><span>{s.icon}</span><span>{iss.text}</span></div>;})}
+                    {sec.improved_version&&(
+                      <div style={{marginTop:14}}>
+                        <div style={{fontSize:12,fontWeight:700,color:'#a78bfa',marginBottom:8}}>✨ النسخة المحسّنة</div>
+                        <div style={{background:'rgba(139,92,246,.06)',border:'1px solid rgba(139,92,246,.2)',borderRadius:9,padding:14,fontSize:13,lineHeight:1.8,color:C.text,whiteSpace:'pre-wrap',marginBottom:10}}>{sec.improved_version}</div>
+                        <button onClick={()=>navigator.clipboard.writeText(sec.improved_version).then(()=>{setCopiedIdx(si);showToast('تم النسخ!');setTimeout(()=>setCopiedIdx(null),2500);})} style={{background:'rgba(139,92,246,.12)',border:'1px solid rgba(139,92,246,.3)',color:'#c4b5fd',borderRadius:8,padding:'7px 14px',fontSize:13,fontWeight:600,cursor:'pointer'}}>{copiedIdx===si?'✅ تم النسخ!':'📋 نسخ النص المحسّن'}</button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </>
+          )}
+          {results.keywords&&(
+            <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:14,padding:'18px 20px',marginBottom:14}}>
+              <div style={{fontSize:15,fontWeight:700,marginBottom:12}}>🔑 الكلمات المفتاحية</div>
+              {results.keywords.present?.length>0&&<div style={{marginBottom:12}}><div style={{fontSize:12,color:C.green,marginBottom:6,fontWeight:600}}>موجودة</div><div style={{display:'flex',flexWrap:'wrap',gap:7}}>{results.keywords.present.map((k,i)=><span key={i} style={{background:'rgba(16,185,129,.1)',border:'1px solid rgba(16,185,129,.3)',color:'#6ee7b7',borderRadius:20,padding:'4px 12px',fontSize:12,fontWeight:600}}>✓ {k}</span>)}</div></div>}
+              {results.keywords.missing?.length>0&&<div><div style={{fontSize:12,color:C.red,marginBottom:6,fontWeight:600}}>أضفها لتقوية سيرتك</div><div style={{display:'flex',flexWrap:'wrap',gap:7}}>{results.keywords.missing.map((k,i)=><span key={i} style={{background:'rgba(239,68,68,.08)',border:'1px solid rgba(239,68,68,.25)',color:'#fca5a5',borderRadius:20,padding:'4px 12px',fontSize:12,fontWeight:600}}>+ {k}</span>)}</div></div>}
+            </div>
+          )}
+          <button onClick={()=>setResults(null)} style={{background:'none',border:`1px solid ${C.border}`,color:C.muted,borderRadius:8,padding:'10px 20px',fontSize:14,cursor:'pointer',marginBottom:20}}>🔄 تحليل سيرة جديدة</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function App(){
+  const [apiKey,setApiKey]=useState(()=>localStorage.getItem('wazifati_key')||'');
+  const [keyInput,setKeyInput]=useState('');
+  const [keySaved,setKeySaved]=useState(()=>!!localStorage.getItem('wazifati_key'));
+  const [keyErr,setKeyErr]=useState('');
+  const [tab,setTab]=useState('search');
+  const [toast,setToast]=useState({msg:'',show:false});
+
+  const showToast=msg=>{setToast({msg,show:true});setTimeout(()=>setToast(t=>({...t,show:false})),3000);};
+
+  const saveKey=()=>{
+    const v=keyInput.trim();
+    if(!v.startsWith('sk-ant-')){setKeyErr('⚠️ يجب أن يبدأ بـ sk-ant-');return;}
+    localStorage.setItem('wazifati_key',v);
+    setApiKey(v);setKeySaved(true);setKeyErr('');
+  };
+
+  const tabBtn=(id,label)=><button onClick={()=>setTab(id)} style={{flex:1,padding:'9px 8px',border:'none',borderRadius:9,background:tab===id?C.card:'none',color:tab===id?C.text:C.muted,fontWeight:500,cursor:'pointer',fontSize:14,display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>{label}</button>;
+
+  return(
+    <div style={{fontFamily:'system-ui,-apple-system,Arial,sans-serif',background:C.bg,color:C.text,minHeight:'100vh',direction:'rtl'}}>
+      <Toast msg={toast.msg} show={toast.show}/>
+      <div style={{maxWidth:860,margin:'0 auto',padding:'32px 16px'}}>
+        <header style={{textAlign:'center',marginBottom:32}}>
+          <div style={{display:'inline-flex',alignItems:'center',gap:8,background:'rgba(59,130,246,.1)',border:'1px solid rgba(59,130,246,.3)',borderRadius:100,padding:'5px 14px',fontSize:13,color:C.accent2,marginBottom:16}}>
+            <span style={{width:6,height:6,borderRadius:'50%',background:C.accent2,display:'inline-block'}}/>مدعوم بالذكاء الاصطناعي
+          </div>
+          <h1 style={{fontSize:'clamp(1.8rem,5vw,2.8rem)',fontWeight:700,background:'linear-gradient(135deg,#e2e8f0,#93c5fd,#67e8f9)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',marginBottom:8}}>وظيفتي</h1>
+          <p style={{color:C.muted,fontSize:15}}>أدخل بياناتك وخلّ الذكاء الاصطناعي يدور لك أفضل الوظائف</p>
+        </header>
+
+        <div style={{display:'flex',gap:14,alignItems:'flex-start',background:keySaved?'rgba(16,185,129,.06)':'rgba(245,158,11,.06)',border:`1px solid ${keySaved?'rgba(16,185,129,.25)':'rgba(245,158,11,.25)'}`,borderRadius:14,padding:'18px 20px',marginBottom:22}}>
+          <div style={{fontSize:22}}>🔑</div>
+          <div style={{flex:1}}>
+            <div style={{fontSize:15,fontWeight:600,marginBottom:4}}>{keySaved?'✓ API Key محفوظ':'أدخل Anthropic API Key'}</div>
+            <div style={{fontSize:13,color:C.muted,marginBottom:10,lineHeight:1.6}}>
+              احصل عليه من <a href="https://console.anthropic.com/settings/keys" target="_blank" style={{color:C.accent2,textDecoration:'none'}}>console.anthropic.com</a> — يُحفظ في المتصفح تلقائياً
+            </div>
+            <div style={{display:'flex',gap:8}}>
+              <input type="password" placeholder="sk-ant-..." defaultValue={apiKey} onChange={e=>setKeyInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&saveKey()} style={{flex:1,background:C.surface,border:`1px solid ${C.border}`,borderRadius:8,padding:'9px 12px',color:C.text,fontSize:14,outline:'none',fontFamily:'monospace'}}/>
+              <button onClick={saveKey} style={{background:`linear-gradient(135deg,${C.accent},${C.accent2})`,border:'none',borderRadius:8,padding:'9px 18px',color:'#fff',fontWeight:600,cursor:'pointer',fontSize:14}}>حفظ</button>
+            </div>
+            {keyErr&&<div style={{fontSize:13,marginTop:7,color:C.red}}>{keyErr}</div>}
+            {keySaved&&<div style={{fontSize:13,marginTop:7,color:C.green}}>✓ محفوظ — لن تحتاج لإدخاله مرة ثانية</div>}
+          </div>
+        </div>
+
+        <div style={{display:'flex',gap:6,background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,padding:5,marginBottom:24}}>
+          {tabBtn('search','🔍 البحث عن وظائف')}
+          {tabBtn('cv','📄 تحسين CV')}
+        </div>
+
+        {tab==='search'&&<SearchTab apiKey={apiKey} showToast={showToast}/>}
+        {tab==='cv'&&<CVTab apiKey={apiKey} showToast={showToast}/>}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
