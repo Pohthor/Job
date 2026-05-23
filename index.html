@@ -51,18 +51,18 @@ const STEPS_CV=['قراءة وفهم المحتوى','تقييم كل قسم','�
 const C={bg:'#0a0f1e',card:'#161e30',surface:'#111827',border:'#1f2d45',accent:'#3b82f6',accent2:'#06b6d4',gold:'#f59e0b',text:'#e2e8f0',muted:'#64748b',green:'#10b981',red:'#ef4444',purple:'#8b5cf6'};
 
 const callAPI=async(key,body)=>{
-  // تحويل صيغة Anthropic إلى صيغة OpenAI المتوافقة مع NVIDIA NIM
-  const messages=[];
-  if(body.system)messages.push({role:'system',content:body.system});
-  (body.messages||[]).forEach(m=>messages.push(m));
-  const res=await fetch('https://integrate.api.nvidia.com/v1/chat/completions',{
+  // تحويل صيغة Anthropic إلى Gemini
+  const parts=[];
+  if(body.system)parts.push({text:'[تعليمات النظام]: '+body.system+'\n\n'});
+  (body.messages||[]).forEach(m=>parts.push({text:(m.role==='user'?'':'المساعد: ')+m.content}));
+  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,{
     method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
-    body:JSON.stringify({model:'meta/llama-3.3-70b-instruct',max_tokens:4000,messages,temperature:0.7})
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({contents:[{role:'user',parts}],generationConfig:{maxOutputTokens:4000,temperature:0.7}})
   });
   if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error?.message||'HTTP '+res.status);}
   const d=await res.json();
-  return d.choices?.[0]?.message?.content||'';
+  return d.candidates?.[0]?.content?.parts?.[0]?.text||'';
 };
 const parseJSON=t=>{const s=t.indexOf('{'),e=t.lastIndexOf('}');if(s===-1||e===-1)throw new Error('لم يُعثر على JSON');return JSON.parse(t.slice(s,e+1));};
 
@@ -344,9 +344,9 @@ function CVTab({apiKey,showToast}){
 }
 
 function App(){
-  const [apiKey,setApiKey]=useState(()=>localStorage.getItem('wazifati_nvidia_key')||'');
+  const [apiKey,setApiKey]=useState(()=>localStorage.getItem('wazifati_gemini_key')||'');
   const [keyInput,setKeyInput]=useState('');
-  const [keySaved,setKeySaved]=useState(()=>!!localStorage.getItem('wazifati_nvidia_key'));
+  const [keySaved,setKeySaved]=useState(()=>!!localStorage.getItem('wazifati_gemini_key'));
   const [keyErr,setKeyErr]=useState('');
   const [tab,setTab]=useState('search');
   const [toast,setToast]=useState({msg:'',show:false});
@@ -355,8 +355,8 @@ function App(){
 
   const saveKey=()=>{
     const v=keyInput.trim();
-    if(!v.startsWith('nvapi-')){setKeyErr('⚠️ يجب أن يبدأ بـ nvapi-');return;}
-    localStorage.setItem('wazifati_nvidia_key',v);
+    if(!v.startsWith('AIza')){setKeyErr('⚠️ يجب أن يبدأ بـ AIza...');return;}
+    localStorage.setItem('wazifati_gemini_key',v);
     setApiKey(v);setKeySaved(true);setKeyErr('');
   };
 
@@ -379,10 +379,10 @@ function App(){
           <div style={{flex:1}}>
             <div style={{fontSize:15,fontWeight:600,marginBottom:4}}>{keySaved?'✓ API Key محفوظ':'أدخل Anthropic API Key'}</div>
             <div style={{fontSize:13,color:C.muted,marginBottom:10,lineHeight:1.6}}>
-              احصل عليه من <a href="https://build.nvidia.com/settings/api-keys" target="_blank" style={{color:C.accent2,textDecoration:'none'}}>build.nvidia.com</a> — يُحفظ في المتصفح تلقائياً
+              احصل عليه من <a href="https://aistudio.google.com/apikey" target="_blank" style={{color:C.accent2,textDecoration:'none'}}>aistudio.google.com</a> — يُحفظ في المتصفح تلقائياً
             </div>
             <div style={{display:'flex',gap:8}}>
-              <input type="password" placeholder="nvapi-..." defaultValue={apiKey} onChange={e=>setKeyInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&saveKey()} style={{flex:1,background:C.surface,border:`1px solid ${C.border}`,borderRadius:8,padding:'9px 12px',color:C.text,fontSize:14,outline:'none',fontFamily:'monospace'}}/>
+              <input type="password" placeholder="AIza..." defaultValue={apiKey} onChange={e=>setKeyInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&saveKey()} style={{flex:1,background:C.surface,border:`1px solid ${C.border}`,borderRadius:8,padding:'9px 12px',color:C.text,fontSize:14,outline:'none',fontFamily:'monospace'}}/>
               <button onClick={saveKey} style={{background:`linear-gradient(135deg,${C.accent},${C.accent2})`,border:'none',borderRadius:8,padding:'9px 18px',color:'#fff',fontWeight:600,cursor:'pointer',fontSize:14}}>حفظ</button>
             </div>
             {keyErr&&<div style={{fontSize:13,marginTop:7,color:C.red}}>{keyErr}</div>}
